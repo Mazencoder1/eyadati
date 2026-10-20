@@ -1,0 +1,24 @@
+#!/bin/sh
+# Parallel-agent guardrail. Source of truth: scripts/agents/hooks/reference-transaction
+# Refuses ANY update of refs/heads/main (commit, merge, fast-forward, reset, branch -f, delete)
+# unless it comes from scripts/agents/promote-to-main.ps1, which sets CLINIC_ALLOW_MAIN=1
+# only after the full verification suite has passed on integration.
+
+[ "$1" = "prepared" ] || { cat >/dev/null; exit 0; }
+
+if [ "$CLINIC_ALLOW_MAIN" = "1" ]; then
+  cat >/dev/null
+  exit 0
+fi
+
+# Compare against the ref's ACTUAL current value: for deletions git may pass a zero "old"
+# value (unchecked), so trusting "$old" would let `git branch -D main` through.
+current=$(git rev-parse -q --verify refs/heads/main 2>/dev/null)
+while read -r old new ref; do
+  if [ "$ref" = "refs/heads/main" ] && [ "$new" != "$current" ]; then
+    echo "BLOCKED: refs/heads/main can only be updated by scripts/agents/promote-to-main.ps1" >&2
+    echo "         (after integration passes build + tests)." >&2
+    exit 1
+  fi
+done
+exit 0

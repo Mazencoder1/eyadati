@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(dotnet ef database update *)",
+      "Bash(dotnet ef database drop *)",
+      "Bash(dotnet ef migrations remove *)",
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Bash(git push --force-with-lease *)",
+      "Bash(git checkout main *)",
+      "Bash(git switch main *)",
+      "Bash(git worktree remove *)",
+      "PowerShell(dotnet ef database update *)",
+      "PowerShell(dotnet ef database drop *)",
+      "PowerShell(dotnet ef migrations remove *)",
+      "PowerShell(git push --force *)",
+      "PowerShell(git push -f *)",
+      "PowerShell(git push --force-with-lease *)",
+      "PowerShell(git checkout main *)",
+      "PowerShell(git switch main *)",
+      "PowerShell(git worktree remove *)"
+    ],
+    "ask": [
+      "Bash(git reset --hard *)",
+      "Bash(git clean *)",
+      "Bash(git branch -D *)",
+      "Bash(git rebase *)",
+      "Bash(*promote-to-main*)",
+      "PowerShell(git reset --hard *)",
+      "PowerShell(git clean *)",
+      "PowerShell(git branch -D *)",
+      "PowerShell(git rebase *)",
+      "PowerShell(*promote-to-main*)"
+    ]
+  }
+}

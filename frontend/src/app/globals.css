@@ -1,0 +1,162 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens. Components use the Tailwind utilities generated from @theme below (bg-surface, text-fg-muted,
+ * rounded-card, shadow-raised…), never raw hex values, so the palette can be re-themed per clinic later.
+ * Contrast (WCAG 2.2 AA) was checked for every fg/bg pair used together:
+ *   fg on surface 17.3:1 · fg-muted 7.5:1 · fg-subtle 5.1:1 (4.7:1 on canvas) · primary on surface 5.5:1
+ *   white on primary 5.5:1 · white on danger 6.6:1 · *-strong on *-soft ≥ 5.9:1 (badges, alerts)
+ *   control borders (border-input) 3.5:1 against surface — WCAG 1.4.11 non-text contrast.
+ */
+:root {
+  /* surfaces */
+  --c-canvas: #f5f7f9;
+  --c-surface: #ffffff;
+  --c-surface-muted: #f1f5f8;
+  --c-border: #e2e8ef;
+  --c-border-strong: #c7d1dc;
+  --c-border-input: #7d8b9d;
+
+  /* text */
+  --c-fg: #0f1b2a;
+  --c-fg-muted: #46566a;
+  --c-fg-subtle: #5f6f82;
+
+  /* brand — calm medical teal */
+  --c-primary: #0f766e;
+  --c-primary-hover: #0d5f59;
+  --c-primary-fg: #ffffff;
+  --c-primary-soft: #e6f6f3;
+  --c-primary-strong: #0b4f4a;
+
+  /* status (soft background + strong text, always paired with an icon and a label) */
+  --c-success-soft: #e8f6ec;
+  --c-success-strong: #166534;
+  --c-warning-soft: #fdf4e3;
+  --c-warning-strong: #8a4b06;
+  --c-danger: #b42318;
+  --c-danger-hover: #912018;
+  --c-danger-soft: #fdeceb;
+  --c-danger-strong: #9a1d14;
+  --c-info-soft: #e9f1fd;
+  --c-info-strong: #1d4ed8;
+  --c-neutral-soft: #eef2f6;
+  --c-neutral-strong: #334155;
+
+  --c-focus: #2563eb;
+  --c-overlay: rgb(15 27 42 / 0.45);
+
+  /* radius */
+  --r-sm: 0.375rem;
+  --r-md: 0.5rem;
+  --r-lg: 0.75rem;
+  --r-xl: 1rem;
+
+  /* elevation */
+  --sh-sm: 0 1px 2px rgb(15 27 42 / 0.06);
+  --sh-md: 0 2px 8px rgb(15 27 42 / 0.08), 0 1px 2px rgb(15 27 42 / 0.04);
+  --sh-lg: 0 12px 32px rgb(15 27 42 / 0.16), 0 2px 6px rgb(15 27 42 / 0.06);
+
+  /* layout */
+  --sidebar-w: 16rem;
+  --topbar-h: 3.75rem;
+  --content-max: 90rem;
+}
+
+@theme inline {
+  --font-sans: var(--font-plex-arabic), ui-sans-serif, system-ui, "Segoe UI", Tahoma, sans-serif;
+
+  --color-canvas: var(--c-canvas);
+  --color-surface: var(--c-surface);
+  --color-surface-muted: var(--c-surface-muted);
+  --color-border: var(--c-border);
+  --color-border-strong: var(--c-border-strong);
+  --color-border-input: var(--c-border-input);
+  --color-fg: var(--c-fg);
+  --color-fg-muted: var(--c-fg-muted);
+  --color-fg-subtle: var(--c-fg-subtle);
+  --color-primary: var(--c-primary);
+  --color-primary-hover: var(--c-primary-hover);
+  --color-primary-fg: var(--c-primary-fg);
+  --color-primary-soft: var(--c-primary-soft);
+  --color-primary-strong: var(--c-primary-strong);
+  --color-success-soft: var(--c-success-soft);
+  --color-success-strong: var(--c-success-strong);
+  --color-warning-soft: var(--c-warning-soft);
+  --color-warning-strong: var(--c-warning-strong);
+  --color-danger: var(--c-danger);
+  --color-danger-hover: var(--c-danger-hover);
+  --color-danger-soft: var(--c-danger-soft);
+  --color-danger-strong: var(--c-danger-strong);
+  --color-info-soft: var(--c-info-soft);
+  --color-info-strong: var(--c-info-strong);
+  --color-neutral-soft: var(--c-neutral-soft);
+  --color-neutral-strong: var(--c-neutral-strong);
+  --color-focus: var(--c-focus);
+  --color-overlay: var(--c-overlay);
+
+  --radius-control: var(--r-md);
+  --radius-card: var(--r-lg);
+  --radius-dialog: var(--r-xl);
+  --radius-pill: 9999px;
+
+  --shadow-subtle: var(--sh-sm);
+  --shadow-raised: var(--sh-md);
+  --shadow-floating: var(--sh-lg);
+
+  /* Arabic script needs a little more line height than Latin defaults. */
+  --text-sm--line-height: 1.6;
+  --text-base--line-height: 1.7;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--c-canvas);
+    color: var(--c-fg);
+    font-family: var(--font-sans);
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  /* Visible focus for keyboard users on every interactive element. */
+  :focus-visible {
+    outline: 2px solid var(--c-focus);
+    outline-offset: 2px;
+  }
+
+  /* Numbers (times, MRNs, phone numbers) stay left-to-right inside RTL text. */
+  .ltr-nums {
+    direction: ltr;
+    unicode-bidi: isolate;
+    font-variant-numeric: tabular-nums;
+  }
+
+  dialog::backdrop {
+    background: var(--c-overlay);
+  }
+
+  /* Printing (the prescription): A4, white paper, no app chrome (the shell marks its parts print:hidden). */
+  @media print {
+    @page {
+      size: A4;
+      margin: 14mm;
+    }
+    body {
+      background: #fff;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}

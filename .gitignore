@@ -1,0 +1,81 @@
+# Root ignores for the monorepo (backend/ and frontend/ also have their own .gitignore).
+
+# dependencies
+node_modules/
+
+/.idea/*
+!/.idea/runConfigurations
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env*.local
+
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+.env
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+.last-run.json
+/.playwright/
+
+# Claude Code: project instructions (CLAUDE.md) and .claude/skills are versioned; personal settings are not
+.claude/settings.local.json
+.claude/**/node_modules/
+
+# Env files anywhere (only *.example templates are committed)
+.env
+.env.*
+!.env.example
+
+# .NET (backend/.gitignore covers the backend; these guard any other location)
+**/bin/
+**/obj/
+.vs/
+*.user
+*.suo
+TestResults/
+.dev-mailbox/
+appsettings.*.local.json
+
+# Python caches (skill scripts)
+__pycache__/
+*.pyc
+
+# IDE
+.idea/
+
+# Windows / OneDrive
+desktop.ini
+Thumbs.db
+~$*
+*.tmp
+
+# Claude Code (per-worktree, machine-specific)
+.claude/settings.local.json
+.claude/worktrees/
+.github/

@@ -1,0 +1,8 @@
+# Secret scanning (CI). Default gitleaks rules, plus one narrow exception.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Integration tests post literal, throw-away passwords (e.g. Wrong-Passw0rd) to throw-away test databases"
+targetRules = ["generic-api-key"]
+paths = ['''^backend/tests/''']

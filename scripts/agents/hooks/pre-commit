@@ -1,0 +1,79 @@
+#!/bin/sh
+# Parallel-agent guardrail. Source of truth: scripts/agents/hooks/pre-commit
+# Installed into the shared .git/hooks by scripts/agents/install-hooks.sh (applies to every worktree).
+#
+# 1. No commits on main.
+# 2. Each agent branch may only commit inside its own scope.
+# 3. Migrations / database SQL are owned by agent/database only.
+# 4. Never commit local env/secret files.
+#
+# Override for a single, manager-approved commit:  CLINIC_ALLOW_CROSS_SCOPE=1 git commit ...
+# This is a guardrail against accidents, not a security boundary.
+
+branch=$(git symbolic-ref --short -q HEAD)
+[ -z "$branch" ] && exit 0   # detached HEAD (rebase/cherry-pick in progress)
+
+if [ "$branch" = "main" ] && [ "$CLINIC_ALLOW_MAIN" != "1" ]; then
+  echo "BLOCKED: direct commits to 'main' are not allowed." >&2
+  echo "Work on your agent branch. main only advances via scripts/agents/promote-to-main.ps1." >&2
+  exit 1
+fi
+
+files=$(git diff --cached --name-only --diff-filter=ACMRD)
+[ -z "$files" ] && exit 0
+
+fail=0
+report() { echo "  $1" >&2; fail=1; }
+
+# Secrets / local env files — blocked on every branch.
+secrets=$(printf '%s\n' "$files" | grep -E '(^|/)\.env($|\.)|\.pem$|appsettings\..*\.local\.json$' | grep -vE '\.env\.example$')
+if [ -n "$secrets" ]; then
+  echo "BLOCKED: local env / secret files must never be committed:" >&2
+  printf '%s\n' "$secrets" | while read -r f; do echo "  $f" >&2; done
+  exit 1
+fi
+
+[ "$CLINIC_ALLOW_CROSS_SCOPE" = "1" ] && exit 0
+
+MIGRATIONS='^backend/src/ClinicSaaS\.Infrastructure/Persistence/Migrations/'
+DBDOCS='^docs/database/'
+
+case "$branch" in
+  agent/backend)
+    allow='^backend/|^docs/'
+    deny="$MIGRATIONS|$DBDOCS" ;;
+  agent/frontend)
+    allow='^frontend/'
+    deny='^frontend/\.next/' ;;
+  agent/qa-security)
+    allow='^backend/tests/|^frontend/.*\.test\.(ts|tsx)$|^frontend/(tests|e2e)/|^frontend/playwright\.config\.ts$|^docs/(qa|security)/'
+    deny='' ;;
+  agent/database)
+    allow='^backend/src/ClinicSaaS\.(Domain|Infrastructure)/|^backend/tests/|^docs/database/'
+    deny='' ;;
+  *)
+    # integration (manager) and ad-hoc branches: no scope restriction,
+    # but migrations still belong to agent/database unless this is the integration branch.
+    if [ "$branch" != "integration" ]; then
+      bad=$(printf '%s\n' "$files" | grep -E "$MIGRATIONS")
+      if [ -n "$bad" ]; then
+        echo "BLOCKED: migrations are owned by agent/database (branch '$branch'):" >&2
+        printf '%s\n' "$bad" | while read -r f; do echo "  $f" >&2; done
+        exit 1
+      fi
+    fi
+    exit 0 ;;
+esac
+
+out=$(printf '%s\n' "$files" | while read -r f; do
+  if ! printf '%s' "$f" | grep -qE "$allow"; then echo "$f  (outside scope of $branch)"; continue; fi
+  if [ -n "$deny" ] && printf '%s' "$f" | grep -qE "$deny"; then echo "$f  (reserved: owned by another agent)"; fi
+done)
+
+if [ -n "$out" ]; then
+  echo "BLOCKED: '$branch' may not commit these paths:" >&2
+  printf '%s\n' "$out" | while read -r l; do echo "  $l" >&2; done
+  echo "Hand the change to the owning agent via the Manager (docs/agents/PARALLEL-WORKFLOW.md)." >&2
+  exit 1
+fi
+exit 0
